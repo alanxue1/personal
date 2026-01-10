@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
-import Footer from "@/components/Footer";
 import { Analytics } from "@vercel/analytics/react";
-import Header from "@/components/Header";
 import { ThemeProvider } from "@/app/providers";
+import { Chrome } from "@/components/Chrome";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,9 +39,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} antialiased min-h-screen flex flex-col`}>
         <ThemeProvider>
-          <Header />
-          <main className="flex flex-col flex-grow min-h-0">{children}</main>
-          <Footer />
+          <Chrome>
+            <main className="flex flex-col flex-grow min-h-0">{children}</main>
+          </Chrome>
         </ThemeProvider>
         <Analytics />
       </body>
