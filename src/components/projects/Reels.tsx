@@ -1,6 +1,9 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { X } from "lucide-react";
 import type { Project } from "@/content/projects";
 import { ReelCard } from "@/components/projects/ReelCard";
 import { ActionRail } from "@/components/projects/ActionRail";
@@ -11,11 +14,12 @@ export type ReelsProps = {
   renderActions?: (project: Project, idx: number, isActive: boolean) => React.ReactNode;
 };
 
-const WHEEL_LOCK_MS = 750;
-const WHEEL_THRESHOLD = 18;
+const WHEEL_LOCK_MS = 650;
+const WHEEL_THRESHOLD = 45;
 const SWIPE_THRESHOLD = 60;
 
 export function Reels({ projects, renderActions }: ReelsProps) {
+  const router = useRouter();
   const scrollerRef = React.useRef<HTMLDivElement | null>(null);
   const itemRefs = React.useRef<Array<HTMLElement | null>>([]);
 
@@ -26,6 +30,7 @@ export function Reels({ projects, renderActions }: ReelsProps) {
   );
   const activeIndexRef = React.useRef(0);
   const lockedRef = React.useRef(false);
+  const wheelAccumRef = React.useRef(0);
   const touchStartYRef = React.useRef<number | null>(null);
   const touchStartXRef = React.useRef<number | null>(null);
 
@@ -91,15 +96,16 @@ export function Reels({ projects, renderActions }: ReelsProps) {
     const onWheel = (e: WheelEvent) => {
       // Only lock on intended vertical scroll.
       if (Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
-      if (Math.abs(e.deltaY) < WHEEL_THRESHOLD) return;
-      if (lockedRef.current) {
-        e.preventDefault();
-        return;
-      }
-
       e.preventDefault();
+      if (lockedRef.current) return;
+
+      wheelAccumRef.current += e.deltaY;
+      if (Math.abs(wheelAccumRef.current) < WHEEL_THRESHOLD) return;
+
+      const dir = wheelAccumRef.current > 0 ? 1 : -1;
+      wheelAccumRef.current = 0;
       lock();
-      scrollToIndex(activeIndexRef.current + (e.deltaY > 0 ? 1 : -1));
+      scrollToIndex(activeIndexRef.current + dir);
     };
 
     const onTouchStart = (e: TouchEvent) => {
@@ -149,6 +155,9 @@ export function Reels({ projects, renderActions }: ReelsProps) {
       e.preventDefault();
       scrollToIndex(activeIndexRef.current - 1);
     }
+    if (e.key === "Escape") {
+      router.push("/");
+    }
   };
 
   const openComments = (project: Project) => {
@@ -163,30 +172,40 @@ export function Reels({ projects, renderActions }: ReelsProps) {
 
   return (
     <>
-      <div
-        ref={scrollerRef}
-        tabIndex={0}
-        onKeyDown={onKeyDown}
-        className="h-full w-full overflow-y-scroll overscroll-contain bg-black outline-none snap-y snap-mandatory"
-        aria-label="Projects reels"
-      >
-        {projects.map((p, idx) => (
-          <div
-            key={p.id}
-            ref={(el) => {
-              itemRefs.current[idx] = el;
-            }}
-            data-index={idx}
-          >
-            <ReelCard project={p} isActive={idx === activeIndex}>
-              {renderActions ? (
-                renderActions(p, idx, idx === activeIndex)
-              ) : (
-                <ActionRail project={p} onOpenComments={() => openComments(p)} />
-              )}
-            </ReelCard>
-          </div>
-        ))}
+      <div className="h-[100dvh] w-full bg-background relative">
+        <Link
+          href="/"
+          className="fixed top-6 left-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm border border-border text-foreground hover:bg-background/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label="Back to home"
+        >
+          <X className="h-7 w-7" />
+        </Link>
+        <div
+          ref={scrollerRef}
+          tabIndex={0}
+          onKeyDown={onKeyDown}
+          className="h-full w-full overflow-y-scroll overscroll-contain outline-none snap-y snap-mandatory scroll-smooth"
+          aria-label="Projects reels"
+        >
+          {projects.map((p, idx) => (
+            <div
+              key={p.id}
+              ref={(el) => {
+                itemRefs.current[idx] = el;
+              }}
+              data-index={idx}
+              className="h-[100dvh] snap-start snap-always"
+            >
+              <ReelCard project={p} isActive={idx === activeIndex}>
+                {renderActions ? (
+                  renderActions(p, idx, idx === activeIndex)
+                ) : (
+                  <ActionRail project={p} onOpenComments={() => openComments(p)} />
+                )}
+              </ReelCard>
+            </div>
+          ))}
+        </div>
       </div>
 
       <CommentsPanel

@@ -4,6 +4,12 @@ export type Project = {
   subtitle?: string;
   videoSrc: string;
   posterSrc?: string;
+  /**
+   * How the video should be fit into the 9:16 phone frame.
+   * - cover: TikTok-style crop to fill the frame
+   * - contain: show the whole landscape video (letterbox/pillarbox)
+   */
+  videoFit?: "cover" | "contain";
   tags: string[];
   shareUrl: string;
   repoUrl?: string;
@@ -19,6 +25,7 @@ export const projects: Project[] = [
     title: "Royale Wager",
     subtitle: "Solana wagering for Clash Royale",
     videoSrc: "/videos/royale-wager.mp4",
+    videoFit: "contain",
     tags: ["Ruby on Rails", "React", "Solana", "Rust", "Privy"],
     shareUrl: "https://github.com/alanxue1",
     repoUrl: "https://github.com/alanxue1",
@@ -31,7 +38,9 @@ export const projects: Project[] = [
     id: "layoff-evaders",
     title: "Layoff Evaders",
     subtitle: "VR Fitness @ DeltaHacks XI",
+    // NOTE: file must exist at `public/videos/layoff-evaders.mp4` (non-zero bytes).
     videoSrc: "/videos/layoff-evaders.mp4",
+    videoFit: "contain",
     tags: ["C#", "Unity", "Python", "Firebase", "Cohere"],
     shareUrl: "https://github.com/alanxue1",
     repoUrl: "https://github.com/alanxue1",
@@ -39,19 +48,6 @@ export const projects: Project[] = [
     authorComment:
       "Awarded 2nd place at DeltaHacks XI. Developed a fitness game that tracks and displays stats in real-time as well as an AI chat-bot using Cohere's API. Designed the game physics/logic and immersive VR mechanics.",
     likeCountSeed: 3188,
-  },
-  {
-    id: "navicart",
-    title: "NaviCart",
-    subtitle: "Accessibility app for shoppers",
-    videoSrc: "/videos/navicart.mp4",
-    tags: ["TypeScript", "React Native", "Firebase", "Gemini", "Mappedin"],
-    shareUrl: "https://github.com/alanxue1",
-    repoUrl: "https://github.com/alanxue1",
-    authorHandle: "alanxue",
-    authorComment:
-      "Designed a smart accessibility app that empowers visually impaired shoppers using audio guidance. Used Gemini's API for item categorization and Mappedin for precise indoor wayfinding.",
-    likeCountSeed: 1520,
   },
 ];
 
