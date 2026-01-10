@@ -1,34 +1,27 @@
-import Link from 'next/link';
+import Link from "next/link";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 const Header = () => {
   return (
-    <header className="sticky top-0 z-10 w-full bg-white/80 dark:bg-black/80 backdrop-blur-sm">
-      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <Link href="/" className="text-xl font-bold hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-          Your Name
-        </Link>
-        
-        <nav>
-          <ul className="flex gap-6">
+    <header className="sticky top-0 z-10 w-full bg-background/70 backdrop-blur-sm">
+      <div className="container mx-auto px-4 py-5">
+        <nav aria-label="Primary">
+          <ul className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
             <li>
-              <Link href="/" className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+              <Link href="/" className="hover:text-foreground transition-colors">
                 Home
               </Link>
             </li>
             <li>
-              <Link href="/about" className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-                About
-              </Link>
-            </li>
-            <li>
-              <Link href="/projects" className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+              <Link
+                href="/projects"
+                className="hover:text-foreground transition-colors"
+              >
                 Projects
               </Link>
             </li>
-            <li>
-              <Link href="/contact" className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-                Contact
-              </Link>
+            <li className="ml-1">
+              <ThemeToggle />
             </li>
           </ul>
         </nav>
