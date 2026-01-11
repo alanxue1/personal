@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import type { Project } from "@/content/projects";
 
 export type CommentsPanelProps = {
@@ -89,7 +90,13 @@ export function CommentsPanel({ open, project, onClose }: CommentsPanelProps) {
 function Comment({ project }: { project: Project }) {
   return (
     <div className="flex gap-3">
-      <div className="h-10 w-10 shrink-0 rounded-full bg-muted" />
+      <Image
+        src="/pfp.png"
+        alt={`${project.authorHandle}'s profile`}
+        width={40}
+        height={40}
+        className="h-10 w-10 shrink-0 rounded-full object-cover"
+      />
       <div className="min-w-0">
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
           <p className="text-sm font-medium">@{project.authorHandle}</p>

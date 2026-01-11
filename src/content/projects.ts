@@ -25,6 +25,7 @@ export const projects: Project[] = [
     title: "Royale Wager",
     subtitle: "Gambling for Clash Royale",
     videoSrc: "/videos/royale-wager.mp4",
+    posterSrc: "/videos/royale-wager.png",
     videoFit: "contain",
     tags: ["Ruby on Rails", "React", "Solana", "Rust", "Privy"],
     shareUrl: "https://github.com/alanxue1/royalewager",
@@ -40,6 +41,7 @@ export const projects: Project[] = [
     subtitle: "VR Fitness @ DeltaHacks XI",
     // NOTE: file must exist at `public/videos/layoff-evaders.mp4` (non-zero bytes).
     videoSrc: "/videos/layoff-evaders.mp4",
+    posterSrc: "/videos/layoff-evaders.png",
     videoFit: "contain",
     tags: ["C#", "Unity", "Python", "Firebase", "Cohere"],
     shareUrl: "https://github.com/martin226/layoffevaders",

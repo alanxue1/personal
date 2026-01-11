@@ -14,7 +14,9 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
   const videoRef = React.useRef<HTMLVideoElement | null>(null);
   const progressRef = React.useRef<HTMLDivElement | null>(null);
   const [videoError, setVideoError] = React.useState(false);
+  const [videoLoading, setVideoLoading] = React.useState(true);
   const [videoAspect, setVideoAspect] = React.useState<number | null>(null);
+  const [generatedPoster, setGeneratedPoster] = React.useState<string | null>(null);
   const [isPaused, setIsPaused] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
   const [isHoveringProgress, setIsHoveringProgress] = React.useState(false);
@@ -101,18 +103,43 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
     };
   }, [isDragging]);
 
+  // Generate poster from first frame if no posterSrc provided
+  const generatePosterFromVideo = React.useCallback(() => {
+    const el = videoRef.current;
+    if (!el || project.posterSrc || generatedPoster) return;
+
+    try {
+      const canvas = document.createElement("canvas");
+      canvas.width = el.videoWidth || 1920;
+      canvas.height = el.videoHeight || 1080;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      ctx.drawImage(el, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+      setGeneratedPoster(dataUrl);
+    } catch (err) {
+      console.warn("Failed to generate poster from video:", err);
+    }
+  }, [project.posterSrc, generatedPoster]);
+
   const effectiveFit: "cover" | "contain" =
     project.videoFit ??
     (videoAspect != null && videoAspect > 1 /* landscape */ ? "contain" : "cover");
 
+  const posterUrl = project.posterSrc || generatedPoster || undefined;
+
   return (
     <section className="relative h-full w-full bg-background">
-      <div className="absolute inset-0 grid place-items-center px-2 py-4">
-        {/* "Phone" frame */}
+      {/* On mobile: full bleed. On desktop: centered phone frame */}
+      <div className="absolute inset-0 md:grid md:place-items-center md:px-2 md:py-4">
         <div
           className={[
-            "relative aspect-[9/16] w-[min(95vw,520px)] max-h-full overflow-hidden rounded-[28px]",
-            "bg-black ring-1 ring-white/10 shadow-2xl",
+            // Mobile: full viewport
+            "relative h-full w-full",
+            // Desktop: phone frame with aspect ratio
+            "md:aspect-[9/16] md:w-[min(95vw,520px)] md:max-h-full md:h-auto md:rounded-[28px]",
+            "overflow-hidden bg-black md:ring-1 md:ring-white/10 md:shadow-2xl",
             "transition-transform duration-300",
             isActive ? "scale-100" : "scale-[0.985]",
           ].join(" ")}
@@ -123,21 +150,37 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
               "h-full w-full cursor-pointer",
               effectiveFit === "cover" ? "object-cover" : "object-contain",
             ].join(" ")}
-            src={project.videoSrc}
-            poster={project.posterSrc}
+            src={`${project.videoSrc}#t=0.001`}
+            poster={posterUrl}
             muted
             loop
             playsInline
-            preload="metadata"
+            preload="auto"
             onClick={togglePlayPause}
+            onLoadedData={() => {
+              setVideoLoading(false);
+            }}
             onLoadedMetadata={() => {
               setVideoError(false);
-              const w = videoRef.current?.videoWidth ?? 0;
-              const h = videoRef.current?.videoHeight ?? 0;
+              const el = videoRef.current;
+              if (!el) return;
+              
+              const w = el.videoWidth ?? 0;
+              const h = el.videoHeight ?? 0;
               if (w > 0 && h > 0) setVideoAspect(w / h);
+              
+              // Force first frame display on mobile
+              el.currentTime = 0.001;
+              
+              // Generate poster from first frame if no posterSrc provided
+              if (!project.posterSrc) {
+                // Wait for frame to be ready
+                el.addEventListener("seeked", generatePosterFromVideo, { once: true });
+              }
             }}
             onError={() => {
               setVideoError(true);
+              setVideoLoading(false);
             }}
           />
 
@@ -155,6 +198,23 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
                   <path d="M8 5v14l11-7z" />
                 </svg>
               </div>
+            </div>
+          )}
+
+          {/* Poster/thumbnail fallback for mobile */}
+          {posterUrl && videoLoading && !videoError && (
+            <img
+              src={posterUrl}
+              alt={`${project.title} thumbnail`}
+              className="absolute inset-0 z-10 h-full w-full object-cover"
+              style={{ objectFit: effectiveFit }}
+            />
+          )}
+
+          {/* Loading shimmer (only if no poster) */}
+          {!posterUrl && videoLoading && !videoError && (
+            <div className="absolute inset-0 z-10 bg-neutral-900">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
             </div>
           )}
 

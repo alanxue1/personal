@@ -47,6 +47,27 @@ export function Reels({ projects, renderActions }: ReelsProps) {
     activeIndexRef.current = activeIndex;
   }, [activeIndex]);
 
+  // Reset scroll position and center first item on mount
+  React.useEffect(() => {
+    const root = scrollerRef.current;
+    const el = itemRefs.current[0];
+    
+    // Reset window scroll (Chrome scroll restoration)
+    window.scrollTo(0, 0);
+    
+    // Reset container scroll
+    if (root) root.scrollTop = 0;
+    
+    // Use double rAF to ensure layout is complete after navigation
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.scrollTo(0, 0);
+        if (root) root.scrollTop = 0;
+        if (el) el.scrollIntoView({ behavior: "instant", block: "start" });
+      });
+    });
+  }, []);
+
   React.useEffect(() => {
     const root = scrollerRef.current;
     if (!root) return;
@@ -211,7 +232,14 @@ export function Reels({ projects, renderActions }: ReelsProps) {
       <CommentsPanel
         open={commentsOpen}
         project={commentsProject}
-        onClose={() => setCommentsOpen(false)}
+        onClose={() => {
+          setCommentsOpen(false);
+          // Re-center current video after comments close
+          requestAnimationFrame(() => {
+            const el = itemRefs.current[activeIndexRef.current];
+            if (el) el.scrollIntoView({ behavior: "instant", block: "start" });
+          });
+        }}
       />
     </>
   );
