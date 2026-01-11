@@ -351,8 +351,8 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
             />
           )}
 
-          {/* Fast-forward indicator */}
-          {isFastForwarding && (
+          {/* Fast-forward indicator (only show when playing) */}
+          {isFastForwarding && !isPaused && (
             <div className="absolute top-1/2 right-8 -translate-y-1/2 z-20 pointer-events-none">
               <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-sm">
                 <svg
@@ -370,7 +370,7 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
           )}
 
           {/* Actions slot (pinned to the phone frame, not the whole screen) */}
-          <div className="absolute bottom-24 right-2 z-20 pointer-events-auto">
+          <div className="absolute bottom-36 right-2 z-20 pointer-events-auto">
             {children}
           </div>
         </div>
