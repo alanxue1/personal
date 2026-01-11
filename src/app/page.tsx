@@ -34,6 +34,7 @@ export default function Home() {
               width={20} 
               height={20} 
               className="object-contain"
+              priority
             />
           </div>
 

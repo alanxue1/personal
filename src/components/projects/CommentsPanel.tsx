@@ -96,6 +96,7 @@ function Comment({ project }: { project: Project }) {
         width={40}
         height={40}
         className="h-10 w-10 shrink-0 rounded-full object-cover"
+        priority
       />
       <div className="min-w-0">
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
