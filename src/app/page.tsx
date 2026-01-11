@@ -200,15 +200,15 @@ export default function Home() {
           {projects.map((project) => (
             <Link
               key={project.id}
-              href="/projects"
+              href={`/projects?project=${project.id}`}
               className="relative aspect-[9/16] bg-zinc-900 overflow-hidden group cursor-pointer"
             >
-              <video
-                src={project.videoSrc}
-                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                muted
-                playsInline
-                preload="metadata"
+              <img
+                src={project.posterSrc}
+                alt={`${project.title} thumbnail`}
+                className="absolute inset-0 h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                loading="eager"
+                decoding="async"
               />
               {/* Overlay on hover */}
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />

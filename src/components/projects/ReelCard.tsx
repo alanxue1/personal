@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
 import type { Project } from "@/content/projects";
 
 export type ReelCardProps = {
@@ -15,12 +14,12 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
   const videoRef = React.useRef<HTMLVideoElement | null>(null);
   const progressRef = React.useRef<HTMLDivElement | null>(null);
   const [videoError, setVideoError] = React.useState(false);
-  const [videoReady, setVideoReady] = React.useState(false);
   const [videoAspect, setVideoAspect] = React.useState<number | null>(null);
   const [isPaused, setIsPaused] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
   const [isHoveringProgress, setIsHoveringProgress] = React.useState(false);
   const [isDragging, setIsDragging] = React.useState(false);
+  const [hasRenderedFrame, setHasRenderedFrame] = React.useState(false);
 
   // Play/pause based on isActive
   React.useEffect(() => {
@@ -107,8 +106,8 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
     project.videoFit ??
     (videoAspect != null && videoAspect > 1 /* landscape */ ? "contain" : "cover");
 
-  // Show poster until video is actually playing
-  const showPoster = project.posterSrc && (!videoReady || videoError);
+  // Show poster until the video has actually rendered a frame (mobile can fire canPlay early)
+  const showPoster = Boolean(project.posterSrc) && !hasRenderedFrame && !videoError;
 
   return (
     <section className="relative h-full w-full bg-background">
@@ -132,14 +131,13 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
               effectiveFit === "cover" ? "object-cover" : "object-contain",
             ].join(" ")}
             src={`${project.videoSrc}#t=0.001`}
+            poster={project.posterSrc}
             muted
             loop
             playsInline
             preload="auto"
             onClick={togglePlayPause}
-            onCanPlay={() => {
-              setVideoReady(true);
-            }}
+            onPlaying={() => setHasRenderedFrame(true)}
             onLoadedMetadata={() => {
               setVideoError(false);
               const el = videoRef.current;
@@ -151,6 +149,11 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
               
               // Force first frame display on mobile
               el.currentTime = 0.001;
+            }}
+            onTimeUpdate={() => {
+              const el = videoRef.current;
+              if (!el) return;
+              if (el.currentTime > 0) setHasRenderedFrame(true);
             }}
             onError={() => {
               setVideoError(true);
@@ -174,21 +177,20 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
             </div>
           )}
 
-          {/* Poster/thumbnail - always visible until video is ready */}
+          {/* Poster/thumbnail - visible until we actually render frames */}
           {showPoster && (
-            <Image
+            <img
               src={project.posterSrc!}
               alt={`${project.title} thumbnail`}
-              fill
-              priority
-              sizes="(max-width: 768px) 100vw, 520px"
-              className="absolute inset-0 z-[5]"
+              className="absolute inset-0 z-[5] h-full w-full pointer-events-none"
               style={{ objectFit: effectiveFit }}
+              loading="eager"
+              decoding="async"
             />
           )}
 
-          {/* Loading shimmer (only if no poster and video not ready) */}
-          {!project.posterSrc && !videoReady && !videoError && (
+          {/* Loading shimmer (only if no poster and we haven't rendered frames) */}
+          {!project.posterSrc && !hasRenderedFrame && !videoError && (
             <div className="absolute inset-0 z-[5] bg-neutral-900">
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
             </div>

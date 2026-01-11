@@ -11,6 +11,7 @@ import { CommentsPanel } from "@/components/projects/CommentsPanel";
 
 export type ReelsProps = {
   projects: Project[];
+  initialProjectId?: string;
   renderActions?: (project: Project, idx: number, isActive: boolean) => React.ReactNode;
 };
 
@@ -18,12 +19,18 @@ const WHEEL_LOCK_MS = 650;
 const WHEEL_THRESHOLD = 45;
 const SWIPE_THRESHOLD = 60;
 
-export function Reels({ projects, renderActions }: ReelsProps) {
+export function Reels({ projects, initialProjectId, renderActions }: ReelsProps) {
   const router = useRouter();
   const scrollerRef = React.useRef<HTMLDivElement | null>(null);
   const itemRefs = React.useRef<Array<HTMLElement | null>>([]);
 
-  const [activeIndex, setActiveIndex] = React.useState(0);
+  const initialIndex = React.useMemo(() => {
+    if (!initialProjectId) return 0;
+    const idx = projects.findIndex((p) => p.id === initialProjectId);
+    return idx >= 0 ? idx : 0;
+  }, [initialProjectId, projects]);
+
+  const [activeIndex, setActiveIndex] = React.useState(initialIndex);
   const [commentsOpen, setCommentsOpen] = React.useState(false);
   const [commentsProjectId, setCommentsProjectId] = React.useState<string | null>(
     null,
@@ -47,6 +54,12 @@ export function Reels({ projects, renderActions }: ReelsProps) {
     activeIndexRef.current = activeIndex;
   }, [activeIndex]);
 
+  React.useEffect(() => {
+    // If the URL selects a specific project, align state immediately.
+    activeIndexRef.current = initialIndex;
+    setActiveIndex(initialIndex);
+  }, [initialIndex]);
+
   // Disable Chrome's scroll restoration and reset scroll on mount
   React.useEffect(() => {
     // Disable browser scroll restoration (Chrome specific fix)
@@ -69,7 +82,7 @@ export function Reels({ projects, renderActions }: ReelsProps) {
       document.body.scrollTop = 0;
       if (root) root.scrollTop = 0;
       
-      const el = itemRefs.current[0];
+      const el = itemRefs.current[initialIndex];
       if (el) el.scrollIntoView({ behavior: "instant", block: "start" });
     }, 0);
     
@@ -80,7 +93,7 @@ export function Reels({ projects, renderActions }: ReelsProps) {
         history.scrollRestoration = "auto";
       }
     };
-  }, []);
+  }, [initialIndex]);
 
   React.useEffect(() => {
     const root = scrollerRef.current;
@@ -207,7 +220,7 @@ export function Reels({ projects, renderActions }: ReelsProps) {
 
   return (
     <>
-      <div className="h-[100dvh] w-full bg-background relative">
+      <div className="fixed inset-0 w-full bg-background overflow-hidden">
         <Link
           href="/"
           className="fixed top-6 left-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm border border-border text-foreground hover:bg-background/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"

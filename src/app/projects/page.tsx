@@ -7,10 +7,23 @@ export const metadata: Metadata = {
   description: "Project demos and writeups.",
 };
 
-export default function Projects() {
+export default async function Projects({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = (await searchParams) ?? {};
+  const projectParam = sp.project;
+  const initialProjectId =
+    typeof projectParam === "string"
+      ? projectParam
+      : Array.isArray(projectParam)
+        ? projectParam[0]
+        : undefined;
+
   return (
     <div className="flex-1 min-h-0">
-      <Reels projects={projects} />
+      <Reels projects={projects} initialProjectId={initialProjectId} />
     </div>
   );
 } 
