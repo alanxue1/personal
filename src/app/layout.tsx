@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ThemeProvider } from "@/app/providers";
 import { Chrome } from "@/components/Chrome";
 import { PreloadAssets } from "@/components/PreloadAssets";
@@ -46,6 +47,7 @@ export default function RootLayout({
           </Chrome>
         </ThemeProvider>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
