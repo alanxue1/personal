@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import type { Project } from "@/content/projects";
 
 export type ReelCardProps = {
@@ -14,9 +15,8 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
   const videoRef = React.useRef<HTMLVideoElement | null>(null);
   const progressRef = React.useRef<HTMLDivElement | null>(null);
   const [videoError, setVideoError] = React.useState(false);
-  const [videoLoading, setVideoLoading] = React.useState(true);
+  const [videoReady, setVideoReady] = React.useState(false);
   const [videoAspect, setVideoAspect] = React.useState<number | null>(null);
-  const [generatedPoster, setGeneratedPoster] = React.useState<string | null>(null);
   const [isPaused, setIsPaused] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
   const [isHoveringProgress, setIsHoveringProgress] = React.useState(false);
@@ -103,31 +103,12 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
     };
   }, [isDragging]);
 
-  // Generate poster from first frame if no posterSrc provided
-  const generatePosterFromVideo = React.useCallback(() => {
-    const el = videoRef.current;
-    if (!el || project.posterSrc || generatedPoster) return;
-
-    try {
-      const canvas = document.createElement("canvas");
-      canvas.width = el.videoWidth || 1920;
-      canvas.height = el.videoHeight || 1080;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-
-      ctx.drawImage(el, 0, 0, canvas.width, canvas.height);
-      const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
-      setGeneratedPoster(dataUrl);
-    } catch (err) {
-      console.warn("Failed to generate poster from video:", err);
-    }
-  }, [project.posterSrc, generatedPoster]);
-
   const effectiveFit: "cover" | "contain" =
     project.videoFit ??
     (videoAspect != null && videoAspect > 1 /* landscape */ ? "contain" : "cover");
 
-  const posterUrl = project.posterSrc || generatedPoster || undefined;
+  // Show poster until video is actually playing
+  const showPoster = project.posterSrc && (!videoReady || videoError);
 
   return (
     <section className="relative h-full w-full bg-background">
@@ -151,14 +132,13 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
               effectiveFit === "cover" ? "object-cover" : "object-contain",
             ].join(" ")}
             src={`${project.videoSrc}#t=0.001`}
-            poster={posterUrl}
             muted
             loop
             playsInline
             preload="auto"
             onClick={togglePlayPause}
-            onLoadedData={() => {
-              setVideoLoading(false);
+            onCanPlay={() => {
+              setVideoReady(true);
             }}
             onLoadedMetadata={() => {
               setVideoError(false);
@@ -171,16 +151,9 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
               
               // Force first frame display on mobile
               el.currentTime = 0.001;
-              
-              // Generate poster from first frame if no posterSrc provided
-              if (!project.posterSrc) {
-                // Wait for frame to be ready
-                el.addEventListener("seeked", generatePosterFromVideo, { once: true });
-              }
             }}
             onError={() => {
               setVideoError(true);
-              setVideoLoading(false);
             }}
           />
 
@@ -201,19 +174,22 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
             </div>
           )}
 
-          {/* Poster/thumbnail fallback for mobile */}
-          {posterUrl && videoLoading && !videoError && (
-            <img
-              src={posterUrl}
+          {/* Poster/thumbnail - always visible until video is ready */}
+          {showPoster && (
+            <Image
+              src={project.posterSrc!}
               alt={`${project.title} thumbnail`}
-              className="absolute inset-0 z-10 h-full w-full object-cover"
+              fill
+              priority
+              sizes="(max-width: 768px) 100vw, 520px"
+              className="absolute inset-0 z-[5]"
               style={{ objectFit: effectiveFit }}
             />
           )}
 
-          {/* Loading shimmer (only if no poster) */}
-          {!posterUrl && videoLoading && !videoError && (
-            <div className="absolute inset-0 z-10 bg-neutral-900">
+          {/* Loading shimmer (only if no poster and video not ready) */}
+          {!project.posterSrc && !videoReady && !videoError && (
+            <div className="absolute inset-0 z-[5] bg-neutral-900">
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
             </div>
           )}

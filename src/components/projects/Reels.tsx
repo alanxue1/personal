@@ -47,25 +47,39 @@ export function Reels({ projects, renderActions }: ReelsProps) {
     activeIndexRef.current = activeIndex;
   }, [activeIndex]);
 
-  // Reset scroll position and center first item on mount
+  // Disable Chrome's scroll restoration and reset scroll on mount
   React.useEffect(() => {
+    // Disable browser scroll restoration (Chrome specific fix)
+    if ("scrollRestoration" in history) {
+      history.scrollRestoration = "manual";
+    }
+    
     const root = scrollerRef.current;
-    const el = itemRefs.current[0];
     
-    // Reset window scroll (Chrome scroll restoration)
+    // Immediately reset all scroll positions
     window.scrollTo(0, 0);
-    
-    // Reset container scroll
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
     if (root) root.scrollTop = 0;
     
-    // Use double rAF to ensure layout is complete after navigation
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        window.scrollTo(0, 0);
-        if (root) root.scrollTop = 0;
-        if (el) el.scrollIntoView({ behavior: "instant", block: "start" });
-      });
-    });
+    // Use setTimeout to ensure this runs after Chrome's scroll restoration attempt
+    const timeoutId = setTimeout(() => {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      if (root) root.scrollTop = 0;
+      
+      const el = itemRefs.current[0];
+      if (el) el.scrollIntoView({ behavior: "instant", block: "start" });
+    }, 0);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      // Restore default scroll restoration on unmount
+      if ("scrollRestoration" in history) {
+        history.scrollRestoration = "auto";
+      }
+    };
   }, []);
 
   React.useEffect(() => {
