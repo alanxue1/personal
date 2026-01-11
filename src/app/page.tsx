@@ -197,7 +197,7 @@ export default function Home() {
 
         {/* Project Grid */}
         <div className="grid grid-cols-3 gap-1 p-1">
-          {projects.map((project) => (
+          {projects.map((project, idx) => (
             <Link
               key={project.id}
               href={`/projects?project=${project.id}`}
@@ -210,6 +210,14 @@ export default function Home() {
                 loading="eager"
                 decoding="async"
               />
+              {/* Pinned badge - only on first video */}
+              {idx === 0 && (
+                <div className="absolute top-2 left-2 z-10 pointer-events-none">
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-md bg-[#fe2c55] text-white text-xs font-semibold">
+                    Pinned
+                  </span>
+                </div>
+              )}
               {/* Overlay on hover */}
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
               {/* Play count indicator */}
