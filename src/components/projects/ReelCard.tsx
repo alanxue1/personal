@@ -3,6 +3,24 @@
 import * as React from "react";
 import type { Project } from "@/content/projects";
 
+// Detect mobile/touch device
+function useIsMobile() {
+  const [isMobile, setIsMobile] = React.useState(false);
+  React.useEffect(() => {
+    const check = () => {
+      setIsMobile(
+        "ontouchstart" in window ||
+          navigator.maxTouchPoints > 0 ||
+          window.matchMedia("(pointer: coarse)").matches
+      );
+    };
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+  return isMobile;
+}
+
 export type ReelCardProps = {
   project: Project;
   isActive: boolean;
@@ -20,6 +38,11 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
   const [isHoveringProgress, setIsHoveringProgress] = React.useState(false);
   const [isDragging, setIsDragging] = React.useState(false);
   const [hasRenderedFrame, setHasRenderedFrame] = React.useState(false);
+  const [isFastForwarding, setIsFastForwarding] = React.useState(false);
+
+  const isMobile = useIsMobile();
+  const previousPlaybackRateRef = React.useRef(1.0);
+  const hapticTriggeredRef = React.useRef(false);
 
   // Play/pause based on isActive
   React.useEffect(() => {
@@ -108,6 +131,51 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
 
   // Show poster until the video has actually rendered a frame (mobile can fire canPlay early)
   const showPoster = Boolean(project.posterSrc) && !hasRenderedFrame && !videoError;
+
+  // Fast-forward gesture handlers (mobile only)
+  const startFastForward = React.useCallback(() => {
+    const el = videoRef.current;
+    if (!el || !isMobile) return;
+
+    // Store previous rate and set 2x
+    previousPlaybackRateRef.current = el.playbackRate;
+    el.playbackRate = 2.0;
+    setIsFastForwarding(true);
+
+    // Trigger haptic feedback once
+    if (!hapticTriggeredRef.current) {
+      hapticTriggeredRef.current = true;
+      if ("vibrate" in navigator) {
+        navigator.vibrate(10); // Short 10ms vibration
+      }
+    }
+  }, [isMobile]);
+
+  const stopFastForward = React.useCallback(() => {
+    const el = videoRef.current;
+    if (!el) return;
+
+    el.playbackRate = previousPlaybackRateRef.current;
+    setIsFastForwarding(false);
+    hapticTriggeredRef.current = false;
+  }, []);
+
+  // Touch event handlers for fast-forward zone
+  const onFastForwardTouchStart = React.useCallback(
+    (e: React.TouchEvent | React.PointerEvent) => {
+      e.stopPropagation();
+      startFastForward();
+    },
+    [startFastForward]
+  );
+
+  const onFastForwardTouchEnd = React.useCallback(
+    (e: React.TouchEvent | React.PointerEvent) => {
+      e.stopPropagation();
+      stopFastForward();
+    },
+    [stopFastForward]
+  );
 
   return (
     <section className="relative h-full w-full bg-background">
@@ -255,6 +323,39 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
               />
             )}
           </div>
+
+          {/* Fast-forward gesture zone (mobile only, rightmost 25%) */}
+          {isMobile && (
+            <div
+              className="absolute top-0 right-0 h-full w-1/4 z-[15]"
+              onTouchStart={onFastForwardTouchStart}
+              onTouchEnd={onFastForwardTouchEnd}
+              onTouchCancel={onFastForwardTouchEnd}
+              onPointerDown={onFastForwardTouchStart}
+              onPointerUp={onFastForwardTouchEnd}
+              onPointerLeave={onFastForwardTouchEnd}
+              onPointerCancel={onFastForwardTouchEnd}
+              aria-hidden="true"
+            />
+          )}
+
+          {/* Fast-forward indicator */}
+          {isFastForwarding && (
+            <div className="absolute top-1/2 right-8 -translate-y-1/2 z-20 pointer-events-none">
+              <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-sm">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  fill="white"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z" />
+                </svg>
+                <span className="text-xs font-medium text-white">2x</span>
+              </div>
+            </div>
+          )}
 
           {/* Actions slot (pinned to the phone frame, not the whole screen) */}
           <div className="absolute bottom-24 right-2 z-20 pointer-events-auto">
