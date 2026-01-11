@@ -121,3 +121,30 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes border-beam {
+  100% {
+    offset-distance: 100%;
+  }
+}
+
+.animate-border-beam {
+  animation: border-beam calc(var(--duration)*1s) linear infinite;
+  offset-path: rect(0 auto auto 0 round calc(var(--border-width)*1px));
+  offset-rotate: 0deg;
+  offset-anchor: calc(var(--anchor)*1px) calc(var(--anchor)*1px);
+  offset-distance: var(--initial-offset, 0%);
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}

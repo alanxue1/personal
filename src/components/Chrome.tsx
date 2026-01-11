@@ -8,12 +8,13 @@ import Footer from "@/components/Footer";
 export function Chrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isProjects = pathname === "/projects";
+  const isHome = pathname === "/";
 
   return (
     <>
-      {!isProjects && <Header />}
+      {!isProjects && !isHome && <Header />}
       {children}
-      {!isProjects && <Footer />}
+      {!isProjects && !isHome && <Footer />}
     </>
   );
 }

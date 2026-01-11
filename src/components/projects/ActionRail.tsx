@@ -72,7 +72,7 @@ export function ActionRail({ project, onOpenComments }: ActionRailProps) {
         onClick={toggleBookmark}
         icon={
           <Bookmark
-            className={bookmarked ? "fill-white text-white" : "text-white"}
+            className={bookmarked ? "fill-[#face15] text-[#face15]" : "text-white"}
           />
         }
       />
