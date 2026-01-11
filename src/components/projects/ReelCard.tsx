@@ -327,14 +327,26 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
           {/* Fast-forward gesture zone (mobile only, rightmost 25%) */}
           {isMobile && (
             <div
-              className="absolute top-0 right-0 h-full w-1/4 z-[15]"
-              onTouchStart={onFastForwardTouchStart}
-              onTouchEnd={onFastForwardTouchEnd}
+              className="absolute top-0 right-0 h-full w-1/4 z-[15] select-none"
+              style={{
+                WebkitTouchCallout: "none",
+                WebkitUserSelect: "none",
+                touchAction: "manipulation",
+              }}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                onFastForwardTouchStart(e);
+              }}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                onFastForwardTouchEnd(e);
+              }}
               onTouchCancel={onFastForwardTouchEnd}
               onPointerDown={onFastForwardTouchStart}
               onPointerUp={onFastForwardTouchEnd}
               onPointerLeave={onFastForwardTouchEnd}
               onPointerCancel={onFastForwardTouchEnd}
+              onContextMenu={(e) => e.preventDefault()}
               aria-hidden="true"
             />
           )}
