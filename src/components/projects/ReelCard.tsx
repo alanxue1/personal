@@ -43,6 +43,9 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
   const isMobile = useIsMobile();
   const previousPlaybackRateRef = React.useRef(1.0);
   const hapticTriggeredRef = React.useRef(false);
+  const fastForwardDelayRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const FAST_FORWARD_DELAY_MS = 300; // Delay before activating fast-forward to prevent accidental activation during scrolling
 
   // Play/pause based on isActive
   React.useEffect(() => {
@@ -160,22 +163,54 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
     hapticTriggeredRef.current = false;
   }, []);
 
+  const cancelFastForwardDelay = React.useCallback(() => {
+    if (fastForwardDelayRef.current) {
+      clearTimeout(fastForwardDelayRef.current);
+      fastForwardDelayRef.current = null;
+    }
+  }, []);
+
   // Touch event handlers for fast-forward zone
   const onFastForwardTouchStart = React.useCallback(
     (e: React.TouchEvent | React.PointerEvent) => {
       e.stopPropagation();
-      startFastForward();
+      // Start a delayed activation to avoid triggering during scroll gestures
+      cancelFastForwardDelay();
+      fastForwardDelayRef.current = setTimeout(() => {
+        startFastForward();
+      }, FAST_FORWARD_DELAY_MS);
     },
-    [startFastForward]
+    [startFastForward, cancelFastForwardDelay]
   );
 
   const onFastForwardTouchEnd = React.useCallback(
     (e: React.TouchEvent | React.PointerEvent) => {
       e.stopPropagation();
+      cancelFastForwardDelay();
       stopFastForward();
     },
-    [stopFastForward]
+    [stopFastForward, cancelFastForwardDelay]
   );
+
+  // Cleanup: reset playback rate when component unmounts
+  React.useEffect(() => {
+    return () => {
+      cancelFastForwardDelay();
+      const el = videoRef.current;
+      if (el) el.playbackRate = 1.0;
+    };
+  }, [cancelFastForwardDelay]);
+
+  // Reset playback rate when video becomes inactive
+  React.useEffect(() => {
+    if (!isActive) {
+      cancelFastForwardDelay();
+      const el = videoRef.current;
+      if (el) el.playbackRate = 1.0;
+      setIsFastForwarding(false);
+      hapticTriggeredRef.current = false;
+    }
+  }, [isActive, cancelFastForwardDelay]);
 
   return (
     <section className="relative h-full w-full bg-background">
@@ -353,7 +388,7 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
 
           {/* Fast-forward indicator (only show when playing) */}
           {isFastForwarding && !isPaused && (
-            <div className="absolute top-1/2 right-8 -translate-y-1/2 z-20 pointer-events-none">
+            <div className="absolute bottom-44 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
               <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-sm">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
