@@ -197,7 +197,7 @@ export default function Home() {
         </div>
 
         {/* Project Grid */}
-        <div className="grid grid-cols-3 gap-1 p-1">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2 p-1 sm:p-2">
           {projects.map((project, idx) => (
             <Link
               key={project.id}
