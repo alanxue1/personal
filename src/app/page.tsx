@@ -213,8 +213,8 @@ export default function Home() {
               />
               {/* Pinned badge - only on first video */}
               {idx === 0 && (
-                <div className="absolute top-2 left-2 z-10 pointer-events-none">
-                  <span className="inline-flex items-center px-3 py-1.5 rounded-md bg-[#fe2c55] text-white text-xs font-semibold">
+                <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 z-10 pointer-events-none">
+                  <span className="inline-flex items-center px-2.5 py-1 text-[11px] sm:px-3 sm:py-1.5 sm:text-xs rounded-md bg-[#fe2c55] text-white font-semibold">
                     Pinned
                   </span>
                 </div>
@@ -222,17 +222,16 @@ export default function Home() {
               {/* Overlay on hover */}
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
               {/* Play count indicator */}
-              <div className="absolute bottom-2 left-2 flex items-center gap-1 text-white text-sm drop-shadow-lg">
+              <div className="absolute bottom-1.5 left-1.5 sm:bottom-2 sm:left-2 flex items-center gap-1.5 text-white text-[14px] sm:text-[15px] font-semibold leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
+                  className="h-[16px] w-[16px] sm:h-[18px] sm:w-[18px]"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
                   <path d="M8 5v14l11-7z" />
                 </svg>
-                <span className="font-medium">
+                <span className="tabular-nums">
                   {project.likeCountSeed
                     ? (project.likeCountSeed * 12.5 / 1000).toFixed(1) + "K"
                     : "0"}
