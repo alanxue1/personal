@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ThemeProvider } from "@/app/providers";
 import { Chrome } from "@/components/Chrome";
 import { PreloadAssets } from "@/components/PreloadAssets";
@@ -14,7 +13,7 @@ const geistSans = Geist({
 
 export const metadata: Metadata = {
   title: "Alan Xue",
-  description: "Personal site — projects, experience, and contact.",
+  description: "Personal site: projects, experience, and contact.",
   icons: {
     icon: [
       { url: "/favicons/favicon-32x32.png", sizes: "32x32", type: "image/png" },
@@ -47,7 +46,6 @@ export default function RootLayout({
           </Chrome>
         </ThemeProvider>
         <Analytics />
-        <SpeedInsights />
       </body>
     </html>
   );

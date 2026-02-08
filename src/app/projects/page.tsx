@@ -22,7 +22,7 @@ export default async function Projects({
         : undefined;
 
   return (
-    <div className="flex-1 min-h-0">
+    <div className="dark flex-1 min-h-0">
       <Reels projects={projects} initialProjectId={initialProjectId} />
     </div>
   );

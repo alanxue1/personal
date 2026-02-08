@@ -39,11 +39,13 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
   const [isDragging, setIsDragging] = React.useState(false);
   const [hasRenderedFrame, setHasRenderedFrame] = React.useState(false);
   const [isFastForwarding, setIsFastForwarding] = React.useState(false);
+  const [repostAvatarError, setRepostAvatarError] = React.useState(false);
 
   const isMobile = useIsMobile();
   const previousPlaybackRateRef = React.useRef(1.0);
   const hapticTriggeredRef = React.useRef(false);
   const fastForwardDelayRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const repostedBy = project.repostedBy ?? null;
 
   const FAST_FORWARD_DELAY_MS = 300; // Delay before activating fast-forward to prevent accidental activation during scrolling
 
@@ -212,6 +214,10 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
     }
   }, [isActive, cancelFastForwardDelay]);
 
+  React.useEffect(() => {
+    setRepostAvatarError(false);
+  }, [repostedBy?.avatarSrc]);
+
   return (
     <section className="relative h-full w-full bg-background">
       {/* On mobile: full bleed. On desktop: centered phone frame */}
@@ -313,6 +319,35 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
           {/* Overlay (title/tags) */}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/80 via-black/25 to-transparent p-4 pb-8">
             <div className="pr-16">
+              {repostedBy ? (
+                <div className="mb-2">
+                  <div className="inline-flex items-center gap-2 rounded-md bg-white px-3 py-1.5 text-[13px] font-semibold leading-4 text-black shadow-sm">
+                    {repostAvatarError || !repostedBy.avatarSrc ? (
+                      <span className="grid h-4 w-4 place-items-center rounded-full bg-[#d1d1d2]">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          className="h-3 w-3 text-white"
+                          fill="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5Z" />
+                        </svg>
+                      </span>
+                    ) : (
+                      <img
+                        src={repostedBy.avatarSrc}
+                        alt={`${repostedBy.name} profile`}
+                        className="h-4 w-4 shrink-0 rounded-full object-cover"
+                        onError={() => setRepostAvatarError(true)}
+                        loading="eager"
+                        decoding="async"
+                      />
+                    )}
+                    <span className="whitespace-nowrap">{repostedBy.name} reposted</span>
+                  </div>
+                </div>
+              ) : null}
               <p className="text-base font-semibold tracking-tight text-white">
                 {project.title}
               </p>
