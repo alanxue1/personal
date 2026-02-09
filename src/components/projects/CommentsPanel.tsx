@@ -49,7 +49,7 @@ export function CommentsPanel({ open, project, onClose }: CommentsPanelProps) {
       {isDesktop ? (
         <aside className="absolute right-0 top-0 h-full w-[380px] max-w-[85vw] border-l border-border bg-background shadow-xl">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
-            <p className="text-sm font-medium">Comments</p>
+            <p className="text-sm font-medium text-muted-foreground">Comments</p>
             <button
               type="button"
               className="rounded-md px-2 py-1 text-sm text-muted-foreground hover:text-foreground"
@@ -68,7 +68,9 @@ export function CommentsPanel({ open, project, onClose }: CommentsPanelProps) {
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <div className="flex items-center gap-3">
               <div className="h-1.5 w-10 rounded-full bg-muted" />
-              <p className="text-sm font-medium">Comments</p>
+              <p className="text-sm font-medium text-muted-foreground">
+                Comments
+              </p>
             </div>
             <button
               type="button"
@@ -88,6 +90,12 @@ export function CommentsPanel({ open, project, onClose }: CommentsPanelProps) {
 }
 
 function Comment({ project }: { project: Project }) {
+  const thread =
+    project.authorThread && project.authorThread.length > 0
+      ? project.authorThread
+      : [project.authorComment];
+  const [head, ...replies] = thread;
+
   return (
     <div className="flex gap-3">
       <Image
@@ -100,15 +108,39 @@ function Comment({ project }: { project: Project }) {
       />
       <div className="min-w-0">
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-          <p className="text-sm font-medium">@{project.authorHandle}</p>
+          <p className="text-sm font-medium text-muted-foreground">
+            @{project.authorHandle}
+          </p>
           <p className="text-xs text-muted-foreground">pinned • 1d</p>
         </div>
-        <p className="mt-1 text-sm text-foreground">{project.authorComment}</p>
+        <p className="mt-1 text-sm text-foreground">{head}</p>
         <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
           <span>Reply</span>
           <span>Share</span>
           <span>Like</span>
         </div>
+
+        {replies.length > 0 ? (
+          <div className="mt-3 space-y-3 border-l border-border/70 pl-4">
+            {replies.map((reply, idx) => (
+              <div key={`${project.id}-reply-${idx}`} className="flex gap-3">
+                <Image
+                  src="/pfp.png"
+                  alt={`${project.authorHandle}'s profile`}
+                  width={28}
+                  height={28}
+                  className="mt-0.5 h-7 w-7 shrink-0 rounded-full object-cover"
+                />
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground">
+                    @{project.authorHandle} • reply
+                  </p>
+                  <p className="mt-1 text-sm text-foreground">{reply}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
       </div>
     </div>
   );

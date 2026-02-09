@@ -15,7 +15,9 @@ export type ReelsProps = {
   renderActions?: (project: Project, idx: number, isActive: boolean) => React.ReactNode;
 };
 
-const WHEEL_LOCK_MS = 650;
+const TOUCH_LOCK_MS = 650;
+const WHEEL_LOCK_MS = 1000;
+const WHEEL_LINE_HEIGHT_PX = 16;
 const WHEEL_THRESHOLD = 45;
 const SWIPE_THRESHOLD = 60;
 
@@ -38,8 +40,17 @@ export function Reels({ projects, initialProjectId, renderActions }: ReelsProps)
   const activeIndexRef = React.useRef(0);
   const lockedRef = React.useRef(false);
   const wheelAccumRef = React.useRef(0);
+  const wheelLockTimeoutRef = React.useRef<number | null>(null);
   const touchStartYRef = React.useRef<number | null>(null);
   const touchStartXRef = React.useRef<number | null>(null);
+
+  const focusScroller = React.useCallback(() => {
+    const root = scrollerRef.current;
+    if (!root) return;
+    if (document.activeElement !== root) {
+      root.focus({ preventScroll: true });
+    }
+  }, []);
 
   const scrollToIndex = React.useCallback((next: number) => {
     const clamped = Math.max(0, Math.min(projects.length - 1, next));
@@ -134,25 +145,50 @@ export function Reels({ projects, initialProjectId, renderActions }: ReelsProps)
     const root = scrollerRef.current;
     if (!root) return;
 
-    const lock = () => {
+    const clearWheelLockTimeout = () => {
+      if (wheelLockTimeoutRef.current == null) return;
+      window.clearTimeout(wheelLockTimeoutRef.current);
+      wheelLockTimeoutRef.current = null;
+    };
+
+    const lockTouch = () => {
       lockedRef.current = true;
       window.setTimeout(() => {
         lockedRef.current = false;
-      }, WHEEL_LOCK_MS);
+      }, TOUCH_LOCK_MS);
     };
 
     const onWheel = (e: WheelEvent) => {
+      if (commentsOpen) return;
+      focusScroller();
+      const deltaX =
+        e.deltaMode === WheelEvent.DOM_DELTA_LINE
+          ? e.deltaX * WHEEL_LINE_HEIGHT_PX
+          : e.deltaMode === WheelEvent.DOM_DELTA_PAGE
+            ? e.deltaX * window.innerHeight
+            : e.deltaX;
+      const deltaY =
+        e.deltaMode === WheelEvent.DOM_DELTA_LINE
+          ? e.deltaY * WHEEL_LINE_HEIGHT_PX
+          : e.deltaMode === WheelEvent.DOM_DELTA_PAGE
+            ? e.deltaY * window.innerHeight
+            : e.deltaY;
       // Only lock on intended vertical scroll.
-      if (Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
+      if (Math.abs(deltaY) < Math.abs(deltaX)) return;
       e.preventDefault();
       if (lockedRef.current) return;
 
-      wheelAccumRef.current += e.deltaY;
+      wheelAccumRef.current += deltaY;
       if (Math.abs(wheelAccumRef.current) < WHEEL_THRESHOLD) return;
 
       const dir = wheelAccumRef.current > 0 ? 1 : -1;
       wheelAccumRef.current = 0;
-      lock();
+      lockedRef.current = true;
+      clearWheelLockTimeout();
+      wheelLockTimeoutRef.current = window.setTimeout(() => {
+        lockedRef.current = false;
+        wheelLockTimeoutRef.current = null;
+      }, WHEEL_LOCK_MS);
       scrollToIndex(activeIndexRef.current + dir);
     };
 
@@ -179,20 +215,21 @@ export function Reels({ projects, initialProjectId, renderActions }: ReelsProps)
       if (Math.abs(dy) < SWIPE_THRESHOLD) return;
       if (lockedRef.current) return;
 
-      lock();
+      lockTouch();
       scrollToIndex(activeIndexRef.current + (dy < 0 ? 1 : -1));
     };
 
-    root.addEventListener("wheel", onWheel, { passive: false });
+    window.addEventListener("wheel", onWheel, { passive: false });
     root.addEventListener("touchstart", onTouchStart, { passive: true });
     root.addEventListener("touchend", onTouchEnd, { passive: true });
 
     return () => {
-      root.removeEventListener("wheel", onWheel);
+      window.removeEventListener("wheel", onWheel);
       root.removeEventListener("touchstart", onTouchStart);
       root.removeEventListener("touchend", onTouchEnd);
+      clearWheelLockTimeout();
     };
-  }, [scrollToIndex]);
+  }, [scrollToIndex, commentsOpen, focusScroller]);
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "ArrowDown") {
@@ -232,6 +269,7 @@ export function Reels({ projects, initialProjectId, renderActions }: ReelsProps)
           ref={scrollerRef}
           tabIndex={0}
           onKeyDown={onKeyDown}
+          onPointerEnter={focusScroller}
           className="h-full w-full overflow-y-scroll overscroll-contain outline-none snap-y snap-mandatory scroll-smooth"
           aria-label="Projects reels"
         >
