@@ -14,7 +14,7 @@ const geistSans = Geist({
 
 export const metadata: Metadata = {
   title: "Alan Xue",
-  description: "Personal site — projects, experience, and contact.",
+  description: "Personal site: projects, experience, and contact.",
   icons: {
     icon: [
       { url: "/favicons/favicon-32x32.png", sizes: "32x32", type: "image/png" },

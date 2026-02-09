@@ -8,7 +8,7 @@ export default function Home() {
   return (
     <div className="min-h-screen w-full bg-black">
       {/* Scrollable content */}
-      <div className="w-full max-w-2xl mx-auto">
+      <div className="w-full max-w-6xl mx-auto px-2 sm:px-4">
         {/* Profile Header */}
         <div className="flex flex-col items-center pt-12 pb-6 px-4">
           {/* Avatar */}
@@ -202,7 +202,7 @@ export default function Home() {
             <Link
               key={project.id}
               href={`/projects?project=${project.id}`}
-              className="relative aspect-[9/16] bg-zinc-900 overflow-hidden group cursor-pointer"
+              className="relative aspect-square bg-zinc-900 overflow-hidden group cursor-pointer"
             >
               <img
                 src={project.posterSrc}
@@ -227,9 +227,13 @@ export default function Home() {
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-[16px] w-[16px] sm:h-[18px] sm:w-[18px]"
                   fill="currentColor"
-                  viewBox="0 0 24 24"
+                  viewBox="0 0 48 48"
                 >
-                  <path d="M8 5v14l11-7z" />
+                  <path
+                    fillRule="evenodd"
+                    clipRule="evenodd"
+                    d="M16 10.554V37.4459L38.1463 24L16 10.554ZM12 8.77702C12 6.43812 14.5577 4.99881 16.5569 6.21266L41.6301 21.4356C43.5542 22.6038 43.5542 25.3962 41.6301 26.5644L16.5569 41.7873C14.5577 43.0012 12 41.5619 12 39.223V8.77702Z"
+                  />
                 </svg>
                 <span className="tabular-nums">
                   {project.likeCountSeed
