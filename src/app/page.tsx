@@ -73,7 +73,7 @@ export default function Home() {
                   <span className="absolute inset-0 w-1/3 animate-shimmer bg-white opacity-0 group-hover:opacity-100 transition-opacity" />
                 </span>
               </a>
-              <span className="text-zinc-400"> | 230k+ on ig</span>
+
             </p>
             <p className="text-base text-zinc-300 leading-relaxed">
               SWE @{" "}
