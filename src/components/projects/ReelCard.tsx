@@ -38,6 +38,7 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
   const [isHoveringProgress, setIsHoveringProgress] = React.useState(false);
   const [isDragging, setIsDragging] = React.useState(false);
   const [hasRenderedFrame, setHasRenderedFrame] = React.useState(false);
+  const [isBuffering, setIsBuffering] = React.useState(true);
   const [isFastForwarding, setIsFastForwarding] = React.useState(false);
   const [repostAvatarError, setRepostAvatarError] = React.useState(false);
 
@@ -246,7 +247,16 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
             playsInline
             preload="auto"
             onClick={togglePlayPause}
-            onPlaying={() => setHasRenderedFrame(true)}
+            onPlaying={() => {
+              setHasRenderedFrame(true);
+              setIsBuffering(false);
+            }}
+            onCanPlay={() => {
+              setIsBuffering(false);
+            }}
+            onWaiting={() => {
+              setIsBuffering(true);
+            }}
             onLoadedMetadata={() => {
               setVideoError(false);
               const el = videoRef.current;
@@ -302,6 +312,36 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
           {!project.posterSrc && !hasRenderedFrame && !videoError && (
             <div className="absolute inset-0 z-[5] bg-neutral-900">
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
+            </div>
+          )}
+
+          {isBuffering && !videoError && !isPaused && (
+            <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center">
+              <div className="grid h-12 w-12 place-items-center rounded-full bg-black/45 backdrop-blur-sm">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  className="h-6 w-6 animate-spin text-white"
+                  aria-hidden="true"
+                >
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="9"
+                    className="opacity-25"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                  />
+                  <path
+                    d="M12 3a9 9 0 0 1 9 9"
+                    className="opacity-100"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </div>
             </div>
           )}
 
