@@ -4,7 +4,6 @@ import "./globals.css";
 import { Analytics } from "@vercel/analytics/react";
 import { ThemeProvider } from "@/app/providers";
 import { Chrome } from "@/components/Chrome";
-import { PreloadAssets } from "@/components/PreloadAssets";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,7 +38,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} antialiased min-h-screen flex flex-col`}>
-        <PreloadAssets />
         <ThemeProvider>
           <Chrome>
             <main className="flex flex-col flex-grow min-h-0">{children}</main>

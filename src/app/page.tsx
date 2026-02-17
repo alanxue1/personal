@@ -3,6 +3,8 @@ import Image from "next/image";
 import { Grid3X3, Heart } from "lucide-react";
 import { BorderBeam } from "@/components/ui/border-beam";
 import { projects } from "@/content/projects";
+import pfpImage from "../../public/pfp.webp";
+import verifiedImage from "../../public/verified.webp";
 
 export default function Home() {
   return (
@@ -15,7 +17,7 @@ export default function Home() {
           <div className="relative mb-5">
             <div className="w-28 h-28 rounded-full overflow-hidden ring-2 ring-zinc-700">
               <Image
-                src="/pfp.png"
+                src={pfpImage}
                 alt="Alan Xue"
                 width={112}
                 height={112}
@@ -28,13 +30,14 @@ export default function Home() {
           {/* Username */}
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xl font-bold text-white">@alanxue</span>
-            <Image 
-              src="/verified.png" 
-              alt="Verified" 
-              width={20} 
-              height={20} 
+            <Image
+              src={verifiedImage}
+              alt="Verified"
+              width={20}
+              height={20}
               className="object-contain"
               priority
+              unoptimized
             />
           </div>
 

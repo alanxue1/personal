@@ -3,6 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import type { Project } from "@/content/projects";
+import pfpImage from "../../../public/pfp.webp";
 
 export type CommentsPanelProps = {
   open: boolean;
@@ -99,7 +100,7 @@ function Comment({ project }: { project: Project }) {
   return (
     <div className="flex gap-3">
       <Image
-        src="/pfp.png"
+        src={pfpImage}
         alt={`${project.authorHandle}'s profile`}
         width={40}
         height={40}
@@ -125,7 +126,7 @@ function Comment({ project }: { project: Project }) {
             {replies.map((reply, idx) => (
               <div key={`${project.id}-reply-${idx}`} className="flex gap-3">
                 <Image
-                  src="/pfp.png"
+                  src={pfpImage}
                   alt={`${project.authorHandle}'s profile`}
                   width={28}
                   height={28}
