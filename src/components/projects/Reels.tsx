@@ -282,7 +282,11 @@ export function Reels({ projects, initialProjectId, renderActions }: ReelsProps)
               data-index={idx}
               className="h-[100dvh] snap-start snap-always"
             >
-              <ReelCard project={p} isActive={idx === activeIndex}>
+              <ReelCard
+                project={p}
+                isActive={idx === activeIndex}
+                isNearby={Math.abs(idx - activeIndex) <= 1}
+              >
                 {renderActions ? (
                   renderActions(p, idx, idx === activeIndex)
                 ) : (

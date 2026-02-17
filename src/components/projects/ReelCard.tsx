@@ -24,15 +24,18 @@ function useIsMobile() {
 export type ReelCardProps = {
   project: Project;
   isActive: boolean;
+  isNearby?: boolean;
   onVideoClick?: () => void;
   children?: React.ReactNode;
 };
 
-export function ReelCard({ project, isActive, children }: ReelCardProps) {
+export function ReelCard({ project, isActive, isNearby = false, children }: ReelCardProps) {
   const videoRef = React.useRef<HTMLVideoElement | null>(null);
   const progressRef = React.useRef<HTMLDivElement | null>(null);
   const [videoError, setVideoError] = React.useState(false);
   const [videoAspect, setVideoAspect] = React.useState<number | null>(null);
+  const [isFullQuality, setIsFullQuality] = React.useState(!project.videoPreviewSrc);
+  const [fullQualityBlobUrl, setFullQualityBlobUrl] = React.useState<string | null>(null);
   const [isPaused, setIsPaused] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
   const [isHoveringProgress, setIsHoveringProgress] = React.useState(false);
@@ -46,9 +49,76 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
   const previousPlaybackRateRef = React.useRef(1.0);
   const hapticTriggeredRef = React.useRef(false);
   const fastForwardDelayRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const restorePlaybackRef = React.useRef<{ time: number; shouldResume: boolean } | null>(null);
+  const fullQualityBlobUrlRef = React.useRef<string | null>(null);
   const repostedBy = project.repostedBy ?? null;
 
   const FAST_FORWARD_DELAY_MS = 300; // Delay before activating fast-forward to prevent accidental activation during scrolling
+  const preferredFullSrc = React.useMemo(() => {
+    if (!project.videoWebmSrc) return project.videoSrc;
+    if (typeof document === "undefined") return project.videoSrc;
+    const probe = document.createElement("video");
+    const canPlayWebm =
+      probe.canPlayType('video/webm; codecs="vp9"') !== "" ||
+      probe.canPlayType("video/webm") !== "";
+    return canPlayWebm ? project.videoWebmSrc : project.videoSrc;
+  }, [project.videoSrc, project.videoWebmSrc]);
+  const activeSrc =
+    fullQualityBlobUrl ??
+    (isFullQuality || !project.videoPreviewSrc ? preferredFullSrc : project.videoPreviewSrc);
+  const shouldAttachSrc = isActive || isNearby;
+  const videoSrc = shouldAttachSrc ? `${activeSrc}#t=0.001` : undefined;
+  const preloadMode: "auto" | "metadata" | "none" = isActive
+    ? "auto"
+    : isNearby
+      ? "metadata"
+      : "none";
+
+  React.useEffect(() => {
+    fullQualityBlobUrlRef.current = fullQualityBlobUrl;
+  }, [fullQualityBlobUrl]);
+
+  React.useEffect(() => {
+    if (!isActive || !project.videoPreviewSrc || isFullQuality) return;
+
+    const controller = new AbortController();
+    let cancelled = false;
+
+    fetch(preferredFullSrc, { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`failed to fetch full quality video (${response.status})`);
+        }
+        return response.blob();
+      })
+      .then((blob) => {
+        if (cancelled) return;
+        const nextBlobUrl = URL.createObjectURL(blob);
+        const el = videoRef.current;
+        if (el) {
+          restorePlaybackRef.current = {
+            time: el.currentTime,
+            shouldResume: isActive && !el.paused,
+          };
+        }
+
+        const previousBlobUrl = fullQualityBlobUrlRef.current;
+        if (previousBlobUrl) URL.revokeObjectURL(previousBlobUrl);
+        fullQualityBlobUrlRef.current = nextBlobUrl;
+        setFullQualityBlobUrl(nextBlobUrl);
+        setIsFullQuality(true);
+      })
+      .catch(() => {
+        if (controller.signal.aborted) return;
+        // Fall back to direct full-quality network source if blob prefetch fails.
+        setIsFullQuality(true);
+      });
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [isActive, isFullQuality, preferredFullSrc, project.videoPreviewSrc]);
 
   // Play/pause based on isActive
   React.useEffect(() => {
@@ -197,10 +267,12 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
 
   // Cleanup: reset playback rate when component unmounts
   React.useEffect(() => {
+    const videoElement = videoRef.current;
     return () => {
       cancelFastForwardDelay();
-      const el = videoRef.current;
-      if (el) el.playbackRate = 1.0;
+      const currentBlobUrl = fullQualityBlobUrlRef.current;
+      if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
+      if (videoElement) videoElement.playbackRate = 1.0;
     };
   }, [cancelFastForwardDelay]);
 
@@ -240,12 +312,12 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
               "h-full w-full cursor-pointer",
               effectiveFit === "cover" ? "object-cover" : "object-contain",
             ].join(" ")}
-            src={`${project.videoSrc}#t=0.001`}
+            src={videoSrc}
             poster={project.posterSrc}
             muted
             loop
             playsInline
-            preload="auto"
+            preload={preloadMode}
             onClick={togglePlayPause}
             onPlaying={() => {
               setHasRenderedFrame(true);
@@ -265,9 +337,22 @@ export function ReelCard({ project, isActive, children }: ReelCardProps) {
               const w = el.videoWidth ?? 0;
               const h = el.videoHeight ?? 0;
               if (w > 0 && h > 0) setVideoAspect(w / h);
-              
-              // Force first frame display on mobile
-              el.currentTime = 0.001;
+
+              const restore = restorePlaybackRef.current;
+              if (restore) {
+                const maxTime = el.duration > 0 ? Math.max(0.001, el.duration - 0.001) : restore.time;
+                el.currentTime = Math.min(Math.max(0.001, restore.time), maxTime);
+                if (restore.shouldResume) {
+                  const playPromise = el.play();
+                  if (playPromise && typeof playPromise.catch === "function") {
+                    playPromise.catch(() => {});
+                  }
+                }
+                restorePlaybackRef.current = null;
+              } else {
+                // Force first frame display on mobile.
+                el.currentTime = 0.001;
+              }
             }}
             onTimeUpdate={() => {
               const el = videoRef.current;

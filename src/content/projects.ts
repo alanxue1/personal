@@ -3,6 +3,8 @@ export type Project = {
   title: string;
   subtitle?: string;
   videoSrc: string;
+  videoPreviewSrc?: string;
+  videoWebmSrc?: string;
   posterSrc?: string;
   /**
    * How the video should be fit into the 9:16 phone frame.
@@ -30,6 +32,8 @@ export const projects: Project[] = [
     title: "Royale Wager",
     subtitle: "Gambling for Clash Royale",
     videoSrc: "/videos/royale-wager.mp4",
+    videoPreviewSrc: "/videos/royale-wager-preview.mp4",
+    videoWebmSrc: "/videos/royale-wager.webm",
     posterSrc: "/videos/royale-wager.png",
     videoFit: "contain",
     tags: ["Ruby on Rails", "React", "Solana", "Rust", "Privy"],
@@ -54,6 +58,8 @@ export const projects: Project[] = [
     title: "Deja View",
     subtitle: "Pinterest to 3D room previews",
     videoSrc: "/videos/deja-view.mp4",
+    videoPreviewSrc: "/videos/deja-view-preview.mp4",
+    videoWebmSrc: "/videos/deja-view.webm",
     posterSrc: "/videos/deja-view.png",
     videoFit: "contain",
     tags: ["Next.js", "Three.js", "Gemini", "Replicate", "FastAPI"],
@@ -78,6 +84,8 @@ export const projects: Project[] = [
     title: "BioPilot",
     subtitle: "Drone crop analytics",
     videoSrc: "/videos/bio-pilot.mp4",
+    videoPreviewSrc: "/videos/bio-pilot-preview.mp4",
+    videoWebmSrc: "/videos/bio-pilot.webm",
     posterSrc: "/videos/bio-pilot.png",
     videoFit: "contain",
     tags: ["TypeScript", "Python", "YOLOv8", "MapLibre", "deck.gl"],
@@ -101,6 +109,8 @@ export const projects: Project[] = [
     subtitle: "VR Fitness @ DeltaHacks XI",
     // NOTE: file must exist at `public/videos/layoff-evaders.mp4` (non-zero bytes).
     videoSrc: "/videos/layoff-evaders.mp4",
+    videoPreviewSrc: "/videos/layoff-evaders-preview.mp4",
+    videoWebmSrc: "/videos/layoff-evaders.webm",
     posterSrc: "/videos/layoff-evaders.png",
     videoFit: "contain",
     tags: ["C#", "Unity", "Python", "Firebase", "Cohere"],
