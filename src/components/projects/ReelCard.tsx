@@ -313,7 +313,6 @@ export function ReelCard({ project, isActive, isNearby = false, children }: Reel
               effectiveFit === "cover" ? "object-cover" : "object-contain",
             ].join(" ")}
             src={videoSrc}
-            poster={project.posterSrc}
             muted
             loop
             playsInline
