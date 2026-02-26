@@ -207,12 +207,13 @@ export default function Home() {
               href={`/projects?project=${project.id}`}
               className="relative aspect-square bg-zinc-900 overflow-hidden group cursor-pointer"
             >
-              <img
-                src={project.posterSrc}
+              <Image
+                src={project.posterSrc!}
                 alt={`${project.title} thumbnail`}
                 className="absolute inset-0 h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
-                loading="eager"
-                decoding="async"
+                fill
+                sizes="(min-width: 640px) 33vw, 50vw"
+                priority={idx === 0}
               />
               {/* Pinned badge - only on first video */}
               {idx === 0 && (

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import type { Project } from "@/content/projects";
 
 // Detect mobile/touch device
@@ -382,13 +383,14 @@ export function ReelCard({ project, isActive, isNearby = false, children }: Reel
 
           {/* Poster/thumbnail - visible until we actually render frames */}
           {showPoster && (
-            <img
+            <Image
               src={project.posterSrc!}
               alt={`${project.title} thumbnail`}
               className="absolute inset-0 z-[5] h-full w-full pointer-events-none"
               style={{ objectFit: effectiveFit }}
-              loading="eager"
-              decoding="async"
+              fill
+              sizes="(min-width: 768px) min(95vw, 520px), 100vw"
+              priority={isActive}
             />
           )}
 
@@ -459,13 +461,13 @@ export function ReelCard({ project, isActive, isNearby = false, children }: Reel
                         </svg>
                       </span>
                     ) : (
-                      <img
+                      <Image
                         src={repostedBy.avatarSrc}
                         alt={`${repostedBy.name} profile`}
                         className="h-4 w-4 shrink-0 rounded-full object-cover"
                         onError={() => setRepostAvatarError(true)}
-                        loading="eager"
-                        decoding="async"
+                        width={16}
+                        height={16}
                       />
                     )}
                     <span className="whitespace-nowrap">{repostedBy.name} reposted</span>
