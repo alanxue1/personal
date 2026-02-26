@@ -36,6 +36,7 @@ for input in "${inputs[@]}"; do
   temp_full_mp4="$VIDEOS_DIR/${base}.full.tmp.mp4"
   full_webm="$VIDEOS_DIR/${base}.webm"
   preview_mp4="$VIDEOS_DIR/${base}-preview.mp4"
+  poster_webp="$VIDEOS_DIR/${base}.webp"
 
   echo ""
   echo "Encoding: $filename"
@@ -62,6 +63,12 @@ for input in "${inputs[@]}"; do
     -vf "scale=-2:480" -movflags +faststart \
     -an \
     "$preview_mp4"
+
+  # 4) Poster frame as WebP (first non-black frame approximation at 0.1s)
+  ffmpeg -y -ss 0.1 -i "$input" \
+    -frames:v 1 \
+    -vf "scale=-2:720" \
+    "$poster_webp"
 done
 
 echo ""
